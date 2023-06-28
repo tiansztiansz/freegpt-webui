@@ -66,7 +66,6 @@ class Backend_Api:
                 time.sleep(3)  # Wait 3 second before trying again
 
 
-
 def build_messages(jailbreak):
     """  
     Build the messages for the conversation.  
@@ -98,7 +97,7 @@ def build_messages(jailbreak):
         prompt["content"]) if internet_access else []
 
     # Add jailbreak instructions if enabled
-    if jailbreak_instructions := isJailbreak(jailbreak):
+    if jailbreak_instructions := getJailbreak(jailbreak):
         conversation += jailbreak_instructions
 
     # Add the prompt
@@ -129,7 +128,7 @@ def fetch_search_results(query):
         snippet = f'[{index + 1}] "{result["snippet"]}" URL:{result["link"]}.'
         snippets += snippet
     results.append({'role': 'system', 'content': snippets})
-    
+
     return results
 
 
@@ -141,7 +140,7 @@ def generate_stream(response, jailbreak):
     :param jailbreak: Jailbreak instruction string  
     :return: Generator object yielding messages in the conversation  
     """
-    if isJailbreak(jailbreak):
+    if getJailbreak(jailbreak):
         response_jailbreak = ''
         jailbroken_checked = False
         for message in response:
@@ -175,7 +174,7 @@ def response_jailbroken_failed(response):
     :param response: Response string  
     :return: Boolean indicating if the response has not been jailbroken  
     """
-    return False if len(response) < 4 else not (response.startswith ("GPT:") or response.startswith("ACT:"))
+    return False if len(response) < 4 else not (response.startswith("GPT:") or response.startswith("ACT:"))
 
 
 def set_response_language(prompt):
@@ -190,7 +189,7 @@ def set_response_language(prompt):
     return f"You will respond in the language: {detected_language}. "
 
 
-def isJailbreak(jailbreak):
+def getJailbreak(jailbreak):
     """  
     Check if jailbreak instructions are provided.  
 
@@ -198,6 +197,11 @@ def isJailbreak(jailbreak):
     :return: Jailbreak instructions if provided, otherwise None  
     """
     if jailbreak != "Default":
-        return special_instructions[jailbreak] if jailbreak in special_instructions else None
+        special_instructions[jailbreak][0]['content'] += special_instructions['two_responses_instruction']
+        if jailbreak in special_instructions:
+            special_instructions[jailbreak]
+            return special_instructions[jailbreak]
+        else:
+            return None
     else:
         return None
